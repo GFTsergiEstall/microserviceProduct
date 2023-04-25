@@ -55,7 +55,7 @@ class ProductIT {
     @Test
     @DisplayName("When perform get request /products/getAll, Then is expected to have status of 200, be an ArrayList, be a Json and have size 13")
     void testGetAll() throws Exception {
-        mockmvc.perform(MockMvcRequestBuilders.get("/products/getAll"))
+        mockmvc.perform(MockMvcRequestBuilders.get("/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.*", isA(ArrayList.class)))
                 .andExpect(content().contentType("application/json"))

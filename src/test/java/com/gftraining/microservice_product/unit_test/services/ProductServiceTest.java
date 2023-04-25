@@ -77,7 +77,7 @@ class ProductServiceTest {
     void testGetAll() {
         given(repository.findAll()).willReturn(productList);
 
-        assertThat(service.getAll()).isEqualTo(productList);
+        assertThat(service.getAllProducts()).isEqualTo(productList);
     }
 
     @Test

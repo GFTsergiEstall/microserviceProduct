@@ -29,10 +29,10 @@ public class ProductController {
         this.featureFlag = microserviceStatus;
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     public List<ProductEntity> getAll() {
-        return productService.getAll();
+        return productService.getAllProducts();
     }
 
     @GetMapping("/name/{name}")
@@ -46,14 +46,15 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> putProductById(@PathVariable Long id, @Valid @RequestBody ProductDTO newProduct) {
-        productService.putProductById(newProduct, id);
+    public ResponseEntity<Object> putProductById(@PathVariable Long id, @Valid @RequestBody ProductDTO product) {
+
+        productService.putProductById(product, id);
 
         String message = "Product with id " + id + " updated successfully.";
 
         if (featureFlag.isCallCartEnabled()) {
             log.info("Feature flag to call CART is ENABLED");
-            productService.patchCartProducts(newProduct, id).subscribe(result -> log.info("Update product from cart response: " + result.toString()));
+            productService.patchCartProducts(product, id).subscribe(result -> log.info("Update product from cart response: " + result.toString()));
         } else {
             log.info("Feature flag to call CART is DISABLED");
             message = message + " Feature flag to call CART is DISABLED.";

@@ -20,13 +20,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.isA;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -63,9 +61,9 @@ class ProductControllerTest {
     @Test
     @DisplayName("Given a call in ProductService getAll, When perform the get request /products/getAll, Then return a list of Products")
     void testGetAll() throws Exception {
-        given(productService.getAll()).willReturn(productList);
+        given(productService.getAllProducts()).willReturn(productList);
 
-        mockmvc.perform(get("/products/getAll"))
+        mockmvc.perform(get("/products"))
                 .andExpect(content().json(new ObjectMapper().writeValueAsString(productList)))
                 .andReturn();
     }

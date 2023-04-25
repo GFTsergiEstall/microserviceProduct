@@ -26,7 +26,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,12 +48,12 @@ public class ProductService {
         this.servicesUrl = servicesUrl;
     }
 
-    public List<ProductEntity> getAll() {
+    public List<ProductEntity> getAllProducts() {
         List<ProductEntity> products = productRepository.findAll();
         log.info("Found all products");
 
-        log.info("Adding final price to the current list");
-        return addFinalPriceToProductsList(products);
+        log.info("Adding discounted price to the current list");
+        return setDiscountedPriceToProducts(products);
     }
 
     public List<ProductEntity> getProductByName(String name) {
@@ -62,8 +61,8 @@ public class ProductService {
         if (products.isEmpty()) throw new EntityNotFoundException("Products with name: " + name + " not found.");
         log.info("Created list of product with name " + name);
 
-        log.info("Adding final price to the current list");
-        return addFinalPriceToProductsList(products);
+        log.info("Adding discounted price to the current list");
+        return setDiscountedPriceToProducts(products);
     }
 
     public ProductEntity getProductById(Long id) {
@@ -71,8 +70,9 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product with id: " + id + " not found."));
         log.info("Found product with id " + id);
 
-        log.info("Adding final price to the current product");
-        return addFinalPriceToProductsList(Collections.singletonList(product)).get(0);
+        log.info("Adding discounted price to the current product");
+        product.setFinalPrice(getDiscountedPrice(product));
+        return product;
     }
 
     public void putProductById(ProductDTO productDTO, Long id) {
@@ -197,23 +197,25 @@ public class ProductService {
 
     }
 
-    private int getDiscount(ProductEntity product) {
-        log.info("Looking for discount");
-        return Optional.ofNullable(categoriesConfig.getCategories().get(product.getCategory())).orElse(0);
-    }
-
-    private BigDecimal calculateFinalPrice(BigDecimal price, int discount) {
-        log.info("Calculating final price");
-        return price.subtract(price.multiply(BigDecimal.valueOf(discount)).divide(new BigDecimal("100")
-                , new MathContext(4, RoundingMode.HALF_UP)));
-    }
-
-    private List<ProductEntity> addFinalPriceToProductsList(List<ProductEntity> products) {
+    private List<ProductEntity> setDiscountedPriceToProducts(List<ProductEntity> products){
         return products.stream()
                 .map(product -> {
-                    product.setFinalPrice(calculateFinalPrice(product.getPrice(), getDiscount(product)));
+                    product.setFinalPrice(getDiscountedPrice(product));
                     return product;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private BigDecimal getDiscountedPrice(ProductEntity product) {
+        log.info("Calculating final price");
+        BigDecimal price = product.getPrice();
+        BigDecimal discount = BigDecimal.valueOf(getDiscount(product));
+
+        return price.subtract(price.multiply(discount).divide(new BigDecimal("100"),2, RoundingMode.HALF_UP));
+    }
+
+    private int getDiscount(ProductEntity product) {
+        log.info("Looking for discount");
+        return Optional.ofNullable(categoriesConfig.getCategories().get(product.getCategory())).orElse(0);
     }
 }
